@@ -16,9 +16,9 @@ The [History.replaceState()](https://developer.mozilla.org/en-US/docs/Web/API/Hi
 
 # And this is how it works:
 
-If you provide [the url without any parameters](https://twiav.nl/en/arcgis/javascript/arcgis_javascript_with_uk_data_url_parameters.htm), you will start at the Default map view. But as you will see, the default parameters are added immediately to the address bar:
+If you provide [the url without any parameters](https://twiav.github.io/WebMaps/URLSearchParams/arcgis_javascript_with_uk_data_url_parameters.htm), you will start at the Default map view. But as you will see, the default parameters are added immediately to the address bar:
 
-https://twiav.nl/en/arcgis/javascript/arcgis_javascript_with_uk_data_url_parameters.htm
+https://twiav.github.io/WebMaps/URLSearchParams/arcgis_javascript_with_uk_data_url_parameters.htm
 
 And as soon as you start zooming and panning around, these parameters will be adjusted every time the view becomes "stationary".
 
@@ -26,7 +26,7 @@ In this way, you can zoom in to a particular spot and copy the url to make sure 
 
 If you click on the link below you will immediately end up in Steòrnabhagh  (or Stornoway), on the island of Lewis and Harris in the Outer Hebrides:
 
-https://twiav.nl/en/arcgis/javascript/arcgis_javascript_with_uk_data_url_parameters.htm?x=149048&y=930581&l=14
+https://twiav.github.io/WebMaps/URLSearchParams/arcgis_javascript_with_uk_data_url_parameters.htm?x=149048&y=930581&l=14
 
 Happy coding!
 
