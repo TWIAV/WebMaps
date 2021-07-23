@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>TWIAV | ArcGIS JavaScript with UK data - URL Parameters: x, y and zoomlevel</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.20/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.20/"></script>
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      font-family: sans-serif;
+    }
+    #header {	
+    	width: 100%;
+        height: 70px;
+        background-color: #154273;
+        color:#FFFFFF;
+        margin: 0;
+    }
+    #headertext {
+        float: left;
+        font-size: 35px;
+        color: white;
+        line-height: 70px;
+        padding-left: 15px;
+    }
+    #viewDiv {
+        position: absolute;
+        top: 70px;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        padding: 0;
+        margin: 0;
+    }
+  </style>
+  <script>  
+      require([
+        "esri/Map",
+        "esri/geometry/Point",
+        "esri/views/MapView",
+        "esri/widgets/Home",
+        "esri/Viewpoint",
+        "esri/core/watchUtils"
+      ], function(Map, Point, MapView, Home, Viewpoint, watchUtils) {
+
+      var sr = 27700;
+      var xCoordHome = 500000;
+      var yCoordHome = 500000;
+      var zoomLevelHome = 6;
+      var scaleHome = 5000000;
+
+      var xCoord = xCoordHome;
+      var yCoord = yCoordHome;
+      var zoomLevel = zoomLevelHome;
+
+      if ('URLSearchParams' in window) { // Feature detection (URLSearchParams is not supported by Internet Explorer)
+        var url = new URL(document.URL);
+        var search_params = url.searchParams;
+        // get searchparams if x, y and l are provided in url
+        if(search_params.has('x') && search_params.has('y') && search_params.has('l')) {
+          var xCoord = parseInt(search_params.get('x'));
+          var yCoord = parseInt(search_params.get('y'));
+          var zoomLevel = parseInt(search_params.get('l'));
+        }
+      };
+
+      var map = new Map({
+        basemap: {
+          portalItem: {
+            id: "0bd3a4a6fd674a90a7d0a9e5f36fb59b" // OS Open Carto
+          }
+        }
+      });
+
+      var view = new MapView({
+        spatialReference: sr, 
+        container: "viewDiv",
+        map: map,
+        center: new Point({x: xCoord, y: yCoord, spatialReference: sr}),
+        zoom: zoomLevel
+      });
+
+      var home = new Home({
+        view: view,
+        // viewpoint of home needs to be defined (hard coded) because otherwise this home depends on the x, y and l values in the searchparams
+        viewpoint: new Viewpoint({targetGeometry: new Point({x: xCoordHome, y: yCoordHome, spatialReference: sr}), scale: scaleHome})
+      });
+
+      view.ui.add(home, "top-left")
+
+      watchUtils.whenTrue(view, "stationary", function() {
+        modifySearchParams();
+      });
+
+      //modify url with new coords and zoomlevel as searchparams
+      function modifySearchParams() {
+        if ('URLSearchParams' in window) { // Feature detection (URLSearchParams is not supported by Internet Explorer)
+          xCoordNew = parseInt(view.center.x);
+          yCoordNew = parseInt(view.center.y);
+          zoomLevelNew = view.zoom;
+          search_params.set('x', xCoordNew);
+          search_params.set('y', yCoordNew);
+          search_params.set('l', zoomLevelNew);
+          url.search = search_params.toString(); // change the search property of the main url
+          new_url = url.toString(); // the new url string
+          history.replaceState(null, '', new_url);
+        }
+      }
+    });
+  </script>
+</head>
+<body>
+  <div id="header">
+      <div id="headertext" class="stretch">ArcGIS API for JavaScript example: URLSearchParams to retain x, y and zoomlevel</div>
+  </div>
+  <div id="viewDiv"></div>
+</body>
+</html>
