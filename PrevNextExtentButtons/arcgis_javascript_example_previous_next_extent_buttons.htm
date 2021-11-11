@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>TWIAV | ArcGIS JavaScript example - Previous and Next extent buttons</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.21/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.21/"></script>
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      font-family: sans-serif;
+    }
+    #header {	
+    	width: 100%;
+        height: 70px;
+        background-color: #154273;
+        color:#FFFFFF;
+        margin: 0;
+    }
+    #headertext {
+        float: left;
+        font-size: 35px;
+        color: white;
+        line-height: 70px;
+        padding-left: 15px;
+    }
+    #viewDiv {
+        position: absolute;
+        top: 70px;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        padding: 0;
+        margin: 0;
+    }
+    .tool.disabled {
+      color: rgba(110,110,110,.4);
+      pointer-events: none;
+    }
+  </style>
+  <script>
+    var _prevExtent, _preExtent, _currentvExtent, _extentHistory
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/core/watchUtils",
+      "dojo/dom-class",
+      "dojo/dom",
+      "dojo/on"
+    ], function(Map, MapView, watchUtils, domClass, dom, on) {
+
+      _prevExtent = false;
+      _preExtent = null;
+      _currentExtent = null;
+      _extentHistory = [];
+      _extentHistoryIndx = 0;
+      _nextExtent = false;
+
+      var map = new Map({
+        basemap: "streets"
+      });
+
+      var view = new MapView({
+        container: "viewDiv",
+        map: map,
+        zoom: 10,
+        center: [0, 51.5]
+      });
+
+      view.ui.add(["zoomPrevBtn","zoomNextBtn"], "top-left");
+
+      watchUtils.whenTrue(view, "ready", function(){
+        initToolbarZoomNextZoomPrev();
+        watchUtils.whenOnce(view, "extent", function(){
+          watchUtils.when(view, 'stationary', function(evt){
+            if(evt){
+              extentChangeHandler(view.extent);
+            }
+          });
+        });
+      });
+
+      function extentChangeHandler(evt) {
+        if(_prevExtent || _nextExtent){
+          _currentExtent = evt;
+        }else{
+          _preExtent = _currentExtent;
+          _currentExtent = evt;
+          _extentHistory.push({
+            preExtent: _preExtent,
+            currentExtent: _currentExtent
+          });
+          _extentHistoryIndx = _extentHistory.length - 1;
+        }
+        _prevExtent = _nextExtent = false;
+        extentHistoryChange();
+      }
+
+      function extentHistoryChange() {
+        if(_extentHistory.length === 0 || _extentHistoryIndx === 0 ){
+          domClass.add(dom.byId("zoomPrev"), "disabled");
+        } else {
+          domClass.remove(dom.byId("zoomPrev"), "disabled");
+        }
+        if(_extentHistory.length === 0 || _extentHistoryIndx === _extentHistory.length - 1){
+          domClass.add(dom.byId("zoomNext"), "disabled");
+        } else {
+          domClass.remove(dom.byId("zoomNext"), "disabled");
+        }
+      }
+
+      function initToolbarZoomNextZoomPrev() {
+        on(dom.byId("zoomNext"), "click", function() {
+          _nextExtent = true;
+          _extentHistoryIndx++;
+          if (_extentHistoryIndx > _extentHistory.length - 1) { // this might happen if the user clicks the zoomNext button too often too fast 
+            _extentHistoryIndx = _extentHistory.length - 1;
+          }
+          view.goTo(_extentHistory[_extentHistoryIndx].currentExtent);
+        });
+        on(dom.byId("zoomPrev"), "click", function() {
+          if(_extentHistory[_extentHistoryIndx].preExtent){
+            _prevExtent = true;
+            view.goTo(_extentHistory[_extentHistoryIndx].preExtent);
+            _extentHistoryIndx--;
+          }
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+  <div id="header">
+      <div id="headertext" class="stretch">ArcGIS API for JavaScript example: Previous and Next extent buttons</div>
+  </div>
+  <div id="viewDiv"></div>
+  <div id="zoomPrevBtn" class="esri-component esri-widget--button esri-widget" role="button">
+    <span title="Previous extent" id="zoomPrev" class="esri-icon esri-icon-left-arrow-circled tool"></span>
+  </div>
+  <div id="zoomNextBtn" class="esri-component esri-widget--button esri-widget" role="button">
+    <span title="Next extent" id="zoomNext" class="esri-icon esri-icon-right-arrow-circled tool"></span>
+  </div>
+</body>
+</html>
