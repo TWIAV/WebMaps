@@ -1,4 +1,4 @@
-# ArcGIS APAI for JavaScript sample GIS Viewer with Dutch data
+# ArcGIS API for JavaScript sample GIS Viewer with Dutch data
 
 This demo web mapping application has been developed with the [ArcGIS API for JavaScript](https://developers.arcgis.com/javascript/latest/) and build with [Vite](https://vitejs.dev/).
 
