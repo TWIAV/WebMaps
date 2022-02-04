@@ -15,7 +15,6 @@ To install the dependencies and run in debug mode:
 ```bash
 npm install # install dependencies
 npm run dev
-npm run build # build the application
 ```
 
 And to build the application:
