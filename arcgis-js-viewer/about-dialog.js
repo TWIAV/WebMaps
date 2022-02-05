@@ -16,10 +16,18 @@ aboutDialog.appendChild(aboutDialogContent);
 
 aboutDialogHeader.innerHTML = 'Over deze applicatie';
 
-aboutDialogContent.innerHTML = '<p>Deze app is ontwikkeld met de <a href="https://developers.arcgis.com/javascript/latest/">ArcGIS API for JavaScript</a>';
-aboutDialogContent.innerHTML += 'en gebouwd met behulp van <a href="https://vitejs.dev/">Vite</a> (Next Generation Frontend Tooling).</p>';
-aboutDialogContent.innerHTML += '<p>De broncode staat op <a href="https://github.com/TWIAV/WebMaps/tree/main/arcgis-js-viewer">GitHub</a>.</p>';
+aboutDialogContent.innerHTML = '<p>Deze app is ontwikkeld met de <a href="https://developers.arcgis.com/javascript/latest/" target="newTab">ArcGIS API for JavaScript</a>';
+aboutDialogContent.innerHTML += 'en gebouwd met behulp van <a href="https://vitejs.dev/" target="newTab">Vite</a> (Next Generation Frontend Tooling).</p>';
+aboutDialogContent.innerHTML += '<p>De broncode staat op <a href="https://github.com/TWIAV/WebMaps/tree/main/arcgis-js-viewer" target="newTab">GitHub</a>.</p>';
 
 document.getElementsByTagName('body')[0].appendChild(aboutDialog);
 
-export { aboutDialog };
+const aboutDialogExpand = new Expand({
+  expandIconClass: "esri-icon-lightbulb",
+  expandTooltip: "Over deze applicatie",
+  expanded: true,
+  content: aboutDialog,
+  group: "expandable-widgets"
+});
+
+export { aboutDialogExpand };
