@@ -53,3 +53,48 @@ html, body {
   margin-top: 17.5px;
   padding-right: 15px;
 }
+.uiDiv {
+  background-color: white;
+  padding: 10px;
+}
+.labelDiv {
+  background-color: white;
+  padding: 3px;
+}
+fieldset {
+  border: 1px solid grey;
+  margin: 10px;
+  border-radius: 8px;
+}
+input[type="number"] {
+  width: 175px;
+}
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #bfbfbf;
+  opacity: 1; /* Firefox */
+}
+::-ms-input-placeholder { /* Microsoft Edge */
+  color: #bfbfbf;
+}
+input:invalid+span:after {
+  content: '✖';
+  padding-left: 5px;
+}
+input:valid+span:after {
+  content: '✓';
+  padding-left: 5px;
+}
+.action-button {
+  padding: 0.6em;
+  border: 1px solid rgba(21, 66, 115, .6);
+  border-radius: 8px;
+  text-align: center;
+  color: white;
+  background-color: rgba(21, 66, 115, .6);
+  cursor: pointer;
+}
+.action-button:hover,
+.action-button:focus {
+  color: #154273;
+  background-color: white;
+}
