@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
   <title>TWIAV | ArcGIS JavaScript example - Previous and Next extent buttons</title>
-  <link rel="stylesheet" href="https://js.arcgis.com/4.21/esri/css/main.css">
-  <script src="https://js.arcgis.com/4.21/"></script>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.25/"></script>
   <style>
     html, body {
       padding: 0;
@@ -37,31 +37,16 @@
         padding: 0;
         margin: 0;
     }
-    .tool.disabled {
-      color: rgba(110,110,110,.4);
-      pointer-events: none;
-    }
   </style>
   <script>
-    var _prevExtent, _preExtent, _currentvExtent, _extentHistory
     require([
       "esri/Map",
       "esri/views/MapView",
-      "esri/core/watchUtils",
-      "dojo/dom-class",
-      "dojo/dom",
-      "dojo/on"
-    ], function(Map, MapView, watchUtils, domClass, dom, on) {
-
-      _prevExtent = false;
-      _preExtent = null;
-      _currentExtent = null;
-      _extentHistory = [];
-      _extentHistoryIndx = 0;
-      _nextExtent = false;
+	  "esri/core/reactiveUtils"
+    ], function(Map, MapView, reactiveUtils) {
 
       var map = new Map({
-        basemap: "streets"
+        basemap: "osm"
       });
 
       var view = new MapView({
@@ -71,18 +56,68 @@
         center: [0, 51.5]
       });
 
-      view.ui.add(["zoomPrevBtn","zoomNextBtn"], "top-left");
+      createZoomPrevZoomNextBtns();
+      view.ui.add(["zoomPrevNextBtns", "zoomPrevNextBtns"], "top-left");
 
-      watchUtils.whenTrue(view, "ready", function(){
-        initToolbarZoomNextZoomPrev();
-        watchUtils.whenOnce(view, "extent", function(){
-          watchUtils.when(view, 'stationary', function(evt){
-            if(evt){
-              extentChangeHandler(view.extent);
-            }
-          });
-        });
-      });
+      /*******************************************************************************
+       * Start Zoom Previous and Zoom Next buttons
+       *******************************************************************************
+	   * The solution presented here to add these 2 zoom buttons is based on work by RobertScheitlin__GISP.
+	   * See his answer to this question:
+	   * https://community.esri.com/t5/arcgis-javascript-maps-sdk-questions/does-the-class-quot-esri-toolbars-navigation-quot/m-p/567061
+	   * Changes to the original RobertScheitlin__GISP solution: removed dojo and replaced watchUtils with reactiveUtils (to upgrade to 4.25)
+       *******************************************************************************/
+
+      _prevExtent = false;
+      _preExtent = null;
+      _currentExtent = null;
+      _extentHistory = [];
+      _extentHistoryIndx = 0;
+      _nextExtent = false;
+
+      reactiveUtils.when(
+        () => view.stationary === true,
+        () => {
+          extentChangeHandler(view.extent);
+        }
+      );
+
+      function createZoomPrevZoomNextBtns() {
+        const zoomPrevNextBtnsDiv = document.createElement('div');
+		zoomPrevNextBtnsDiv.innerHTML = `
+		  <div id="zoomPrevNextBtns" class="esri-component esri-zoom">
+		    <div id="zoomPrevBtn" class="esri-widget--button esri-widget esri-disabled" role="button">
+              <span title="Previous extent" id="zoomPrev" class="esri-icon esri-icon-left-arrow-circled"></span>
+            </div>
+		    <div id="zoomNextBtn" class="esri-widget--button esri-widget esri-disabled" role="button">
+              <span title="Next extent" id="zoomNext" class="esri-icon esri-icon-right-arrow-circled"></span>
+            </div>
+          </div>`;
+        document.body.appendChild(zoomPrevNextBtnsDiv);
+      }
+
+      let l_zoomPrevBtn = document.getElementById("zoomPrevBtn");
+	  l_zoomPrevBtn.addEventListener("click", zoomPreviousExtent);
+
+      let l_zoomNextBtn = document.getElementById("zoomNextBtn");
+	  l_zoomNextBtn.addEventListener("click", zoomNextExtent);
+      
+      function zoomNextExtent() {
+        _nextExtent = true;
+        _extentHistoryIndx++;
+        if (_extentHistoryIndx > _extentHistory.length - 1) { // this might happen if the user clicks the zoomNext button too often too fast 
+          _extentHistoryIndx = _extentHistory.length - 1;
+        }
+        view.goTo(_extentHistory[_extentHistoryIndx].currentExtent);
+      }
+		
+		function zoomPreviousExtent() {
+        if(_extentHistory[_extentHistoryIndx].preExtent){
+          _prevExtent = true;
+          view.goTo(_extentHistory[_extentHistoryIndx].preExtent);
+          _extentHistoryIndx--;
+        }
+      }
 
       function extentChangeHandler(evt) {
         if(_prevExtent || _nextExtent){
@@ -102,47 +137,27 @@
 
       function extentHistoryChange() {
         if(_extentHistory.length === 0 || _extentHistoryIndx === 0 ){
-          domClass.add(dom.byId("zoomPrev"), "disabled");
+		  l_zoomPrevBtn.classList.add("esri-disabled");
         } else {
-          domClass.remove(dom.byId("zoomPrev"), "disabled");
+		  l_zoomPrevBtn.classList.remove("esri-disabled");
         }
         if(_extentHistory.length === 0 || _extentHistoryIndx === _extentHistory.length - 1){
-          domClass.add(dom.byId("zoomNext"), "disabled");
+		  l_zoomNextBtn.classList.add("esri-disabled");
         } else {
-          domClass.remove(dom.byId("zoomNext"), "disabled");
+		  l_zoomNextBtn.classList.remove("esri-disabled");
         }
       }
 
-      function initToolbarZoomNextZoomPrev() {
-        on(dom.byId("zoomNext"), "click", function() {
-          _nextExtent = true;
-          _extentHistoryIndx++;
-          if (_extentHistoryIndx > _extentHistory.length - 1) { // this might happen if the user clicks the zoomNext button too often too fast 
-            _extentHistoryIndx = _extentHistory.length - 1;
-          }
-          view.goTo(_extentHistory[_extentHistoryIndx].currentExtent);
-        });
-        on(dom.byId("zoomPrev"), "click", function() {
-          if(_extentHistory[_extentHistoryIndx].preExtent){
-            _prevExtent = true;
-            view.goTo(_extentHistory[_extentHistoryIndx].preExtent);
-            _extentHistoryIndx--;
-          }
-        });
-      }
+      /*******************************************************************************
+       * End Zoom Previous and Zoom Next buttons
+       *******************************************************************************/
     });
   </script>
 </head>
 <body>
   <div id="header">
-      <div id="headertext" class="stretch">ArcGIS API for JavaScript example: Previous and Next extent buttons</div>
+      <div id="headertext" class="stretch">ArcGIS Maps SDK for JavaScript example: Previous and Next extent buttons</div>
   </div>
   <div id="viewDiv"></div>
-  <div id="zoomPrevBtn" class="esri-component esri-widget--button esri-widget" role="button">
-    <span title="Previous extent" id="zoomPrev" class="esri-icon esri-icon-left-arrow-circled tool"></span>
-  </div>
-  <div id="zoomNextBtn" class="esri-component esri-widget--button esri-widget" role="button">
-    <span title="Next extent" id="zoomNext" class="esri-icon esri-icon-right-arrow-circled tool"></span>
-  </div>
 </body>
 </html>
